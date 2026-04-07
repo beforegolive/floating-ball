@@ -16,7 +16,7 @@
     "demo": "vite --open",
     "build": "vite build && cp dist/src/index.d.ts dist/index.d.ts",
     "preview": "vite preview",
-    "publish": "npm version patch && npm run build && npm publish"
+    "publish": "npm run build && npm publish"
   },
   "peerDependencies": {
     "react": ">=18.0.0",
