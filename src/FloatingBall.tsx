@@ -298,7 +298,7 @@ const FloatingBall = ({
     <>
       <div
         ref={ballRef}
-        className={ballStyle}
+        className={`${ballStyle} ${className}`.trim() || ballStyle}
         style={{
           left: position.x,
           top: position.y,
