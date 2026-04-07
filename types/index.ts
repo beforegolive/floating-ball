@@ -32,11 +32,11 @@ export interface FloatingBallProps {
   /** 层级 */
   zIndex?: number;
   /**
-   * 版本信息，用于显示在悬浮球上
+   * 版本信息，用于显示在悬浮球上（必填）
    * - version: 从引用方项目的 package.json 读取
    * - buildTime: 从引用方项目的构建时间获取
    */
-  versionInfo?: VersionInfo;
+  versionInfo: VersionInfo;
 }
 
 export interface Position {
@@ -50,11 +50,11 @@ export interface VersionInfo {
    * @example import packageJson from './package.json';
    * version: packageJson.version
    */
-  version?: string;
+  version: string;
   /**
    * 构建时间，应从引用方项目的构建流程获取
    * @example 通过 Vite define 注入：define: { __BUILD_TIME__: JSON.stringify(new Date().toISOString().split('T')[0]) }
    * buildTime: __BUILD_TIME__
    */
-  buildTime?: string;
+  buildTime: string;
 }

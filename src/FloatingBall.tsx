@@ -76,6 +76,15 @@ const FloatingBall = ({
   zIndex = 2999,
   versionInfo,
 }: FloatingBallProps) => {
+  // 检测 versionInfo 是否完整（必填）
+  useEffect(() => {
+    if (!versionInfo) {
+      console.error('[FloatingBall] versionInfo is required. Please provide { version, buildTime } to display version info.');
+    } else if (!versionInfo.version || !versionInfo.buildTime) {
+      console.error('[FloatingBall] versionInfo is incomplete. Both version and buildTime are required.');
+    }
+  }, [versionInfo]);
+
   const [position, setPosition] = useState<Position>(() => {
     const saved = localStorage.getItem(storageKey);
     if (saved) {
