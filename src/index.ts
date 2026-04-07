@@ -1,2 +1,2 @@
 export { default } from './FloatingBall';
-export type { FloatingBallProps, Position, MenuItem } from '../types';
+export type { FloatingBallProps, MenuItem, Position, VersionInfo } from '../types';

@@ -13,6 +13,7 @@
   },
   "scripts": {
     "dev": "vite",
+    "demo": "vite --open",
     "build": "vite build && cp dist/src/index.d.ts dist/index.d.ts",
     "preview": "vite preview"
   },
@@ -22,7 +23,7 @@
     "react-router-dom": ">=6.0.0"
   },
   "dependencies": {
-    "goober": "^2.1.16"
+    "goober": "^2.1.18"
   },
   "devDependencies": {
     "@types/react": "^19.1.0",
