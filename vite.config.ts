@@ -7,6 +7,10 @@ export default defineConfig({
   plugins: [react(), dts({
     include: 'src/index.ts',
   })],
+  define: {
+    // 在构建时替换 BUILD_TIME 为实际构建日期
+    'BUILD_TIME': JSON.stringify(new Date().toISOString().split('T')[0]),
+  },
   build: {
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),

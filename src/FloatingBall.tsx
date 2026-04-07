@@ -1,9 +1,13 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { css, setup } from "goober";
 import type { FloatingBallProps, MenuItem, Position, VersionInfo } from "../types";
+import packageJson from '../package.json';
 
 // 初始化 goober
 setup(css);
+
+// 构建时注入的构建时间（通过 Vite define 或 rollup 替换）
+const BUILD_TIME = '2026-04-07';
 
 // 样式定义
 const ballStyle = css`
@@ -78,8 +82,13 @@ const FloatingBall = ({
   bgColor = "rgb(34, 139, 34)",
   className = "",
   zIndex = 2999,
-  versionInfo,
+  versionInfo: versionInfoProp,
 }: InternalProps) => {
+  // 默认版本信息：从 package.json 和构建时常量获取
+  const versionInfo: VersionInfo = versionInfoProp || {
+    version: packageJson.version,
+    buildTime: BUILD_TIME,
+  };
   const [position, setPosition] = useState<Position>(() => {
     const saved = localStorage.getItem(storageKey);
     if (saved) {
