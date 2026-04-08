@@ -1,3 +1,5 @@
+import type { Dayjs } from "dayjs";
+
 export interface MenuItem {
   /** 显示的标签 */
   label: string;
@@ -10,10 +12,6 @@ export interface MenuItem {
 export interface FloatingBallProps {
   /** 附加菜单项（常驻项：刷新、回到首页） */
   extraMenuItems?: MenuItem[];
-  /** 刷新菜单项的点击行为 */
-  onRefresh?: () => void;
-  /** 回到首页菜单项的点击行为 */
-  onGoHome?: () => void;
   /** 单击行为（默认刷新页面），设为 false 禁用单击 */
   onClick?: (() => void) | false;
   /** localStorage 存储位置持久化的 key */
@@ -52,9 +50,7 @@ export interface VersionInfo {
    */
   version: string;
   /**
-   * 构建时间，应从引用方项目的构建流程获取
-   * @example 通过 Vite define 注入：define: { __BUILD_TIME__: JSON.stringify(new Date().toISOString().split('T')[0]) }
-   * buildTime: __BUILD_TIME__
+   * 构建时间，dayjs 实例
    */
-  buildTime: string;
+  buildTime: Dayjs;
 }

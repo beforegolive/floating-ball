@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import dayjs from "dayjs";
 import { css, setup } from "goober";
 import type { FloatingBallProps, MenuItem, Position, VersionInfo } from "../types";
 
@@ -318,7 +319,7 @@ const FloatingBall = ({
       >
         {versionInfo?.buildTime && (
           <span style={{ opacity: 0.8, lineHeight: 1.1, textAlign: "center", margin: 0 }}>
-            {versionInfo.buildTime}
+            {dayjs(versionInfo.buildTime).format("MM-DD(HH:mm)")}
           </span>
         )}
         {versionInfo?.version && (
