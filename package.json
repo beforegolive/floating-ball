@@ -23,8 +23,8 @@
     "publish": "npm publish"
   },
   "peerDependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
   },
   "dependencies": {
     "dayjs": "^1.11.20",
