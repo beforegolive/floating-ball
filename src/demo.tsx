@@ -1,25 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter, useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import FloatingBall from './FloatingBall';
 
 const VERSION = '1.0.0';
 const BUILD_TIME = dayjs();
 
-function DemoApp() {
-  const navigate = useNavigate();
-
-  const extraMenuItems = [
-    {
-      label: '打开笔记页面',
-      icon: '📝',
-      action: () => {
-        navigate('/notes');
-      },
-    },
-  ];
-
+function App() {
   return (
     <div style={{ padding: '20px', fontFamily: 'system-ui' }}>
       <h1>Floating Ball Demo</h1>
@@ -33,7 +20,6 @@ function DemoApp() {
       </div>
 
       <FloatingBall
-        extraMenuItems={extraMenuItems}
         storageKey="floating-ball-position"
         defaultPosition={{ x: 16, y: 16 }}
         width={80}
@@ -46,14 +32,6 @@ function DemoApp() {
         }}
       />
     </div>
-  );
-}
-
-function App() {
-  return (
-    <BrowserRouter>
-      <DemoApp />
-    </BrowserRouter>
   );
 }
 

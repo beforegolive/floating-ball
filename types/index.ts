@@ -50,7 +50,7 @@ export interface VersionInfo {
    */
   version: string;
   /**
-   * 构建时间，dayjs 实例
+   * 构建时间，dayjs 实例或 Date 对象
    */
-  buildTime: Dayjs;
+  buildTime: Dayjs | Date;
 }
