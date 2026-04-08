@@ -84,7 +84,10 @@ const FloatingBall = ({
     } else if (!versionInfo.version || !versionInfo.buildTime) {
       console.error('[FloatingBall] versionInfo is incomplete. Both version and buildTime are required.');
     }
-  }, [versionInfo]);
+    if (!extraMenuItems || extraMenuItems.length === 0) {
+      console.error('[FloatingBall] extraMenuItems is not provided. Double-click menu may not work.');
+    }
+  }, [versionInfo, extraMenuItems]);
 
   const [position, setPosition] = useState<Position>(() => {
     const saved = localStorage.getItem(storageKey);
