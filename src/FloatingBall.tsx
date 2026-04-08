@@ -84,10 +84,7 @@ const FloatingBall = ({
     } else if (!versionInfo.version || !versionInfo.buildTime) {
       console.error('[FloatingBall] versionInfo is incomplete. Both version and buildTime are required.');
     }
-    if (!extraMenuItems || extraMenuItems.length === 0) {
-      console.error('[FloatingBall] extraMenuItems is not provided. Double-click menu may not work.');
-    }
-  }, [versionInfo, extraMenuItems]);
+  }, [versionInfo]);
 
   const [position, setPosition] = useState<Position>(() => {
     const saved = localStorage.getItem(storageKey);
@@ -172,7 +169,7 @@ const FloatingBall = ({
 
     if (onClick === false) return;
 
-    if (extraMenuItems && extraMenuItems.length > 0) {
+    if (menuItems.length > 0) {
       if (clickTimerRef.current) {
         clearTimeout(clickTimerRef.current);
       }
@@ -195,7 +192,7 @@ const FloatingBall = ({
       clearTimeout(clickTimerRef.current);
       clickTimerRef.current = null;
     }
-    if (!isDraggingRef.current && extraMenuItems && extraMenuItems.length > 0) {
+    if (!isDraggingRef.current && menuItems.length > 0) {
       setIsMenuOpen(true);
     }
     doubleClickFiredRef.current = true;
@@ -244,7 +241,7 @@ const FloatingBall = ({
             clearTimeout(clickTimerRef.current);
             clickTimerRef.current = null;
           }
-          if (extraMenuItems && extraMenuItems.length > 0) {
+          if (menuItems.length > 0) {
             setIsMenuOpen(true);
           }
           doubleClickFiredRef.current = true;
@@ -261,7 +258,7 @@ const FloatingBall = ({
           clearTimeout(clickTimerRef.current);
         }
 
-        if (extraMenuItems && extraMenuItems.length > 0) {
+        if (menuItems.length > 0) {
           clickTimerRef.current = setTimeout(() => {
             clickTimerRef.current = null;
             lastTapRef.current = null;
@@ -295,7 +292,6 @@ const FloatingBall = ({
 
   const defaultMenuItems: MenuItem[] = [
     { label: "刷新", icon: "🔄", action: () => window.location.reload() },
-    { label: "回到首页", icon: "🏠", action: () => { window.location.href = "/"; } },
   ];
   const menuItems: MenuItem[] = [...defaultMenuItems, ...(extraMenuItems || [])];
 
