@@ -1,11 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, useNavigate } from 'react-router-dom';
+import dayjs from 'dayjs';
 import FloatingBall from './FloatingBall';
 
 const VERSION = '1.0.0';
-const now = new Date();
-const BUILD_TIME = `${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}(${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')})`;
+const BUILD_TIME = dayjs();
 
 function DemoApp() {
   const navigate = useNavigate();
