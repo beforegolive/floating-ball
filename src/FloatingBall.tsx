@@ -105,6 +105,7 @@ const FloatingBall = ({
   const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchHandledRef = useRef(false);
   const doubleClickFiredRef = useRef(false);
+  const wasJustDraggedRef = useRef(false);
   const ballRef = useRef<HTMLDivElement>(null);
   const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
 
@@ -150,8 +151,18 @@ const FloatingBall = ({
       };
 
       const handleMouseUp = () => {
+        if (isDraggingRef.current) {
+          wasJustDraggedRef.current = true;
+        }
         handleDragEnd();
-        isDraggingRef.current = false;
+        // 延迟重置，让 onClick 的定时器回调能检测到拖动状态
+        setTimeout(() => {
+          isDraggingRef.current = false;
+          // 400ms 后清除 wasJustDraggedRef
+          setTimeout(() => {
+            wasJustDraggedRef.current = false;
+          }, 400);
+        }, 0);
         document.removeEventListener("mousemove", handleMouseMove);
         document.removeEventListener("mouseup", handleMouseUp);
       };
@@ -176,12 +187,12 @@ const FloatingBall = ({
 
       clickTimerRef.current = setTimeout(() => {
         clickTimerRef.current = null;
-        if (!isDraggingRef.current && !doubleClickFiredRef.current) {
+        if (!isDraggingRef.current && !doubleClickFiredRef.current && !wasJustDraggedRef.current) {
           onClick ? onClick() : window.location.reload();
         }
       }, 300);
     } else {
-      if (!isDraggingRef.current) {
+      if (!isDraggingRef.current && !wasJustDraggedRef.current) {
         onClick ? onClick() : window.location.reload();
       }
     }

@@ -1,6 +1,6 @@
 {
   "name": "@beforegolive/floating-ball",
-  "version": "0.2.7",
+  "version": "0.2.9",
   "private": false,
   "type": "module",
   "main": "./dist/index.js",
@@ -20,7 +20,7 @@
     "demo": "vite --open",
     "build": "vite build && cp dist/src/index.d.ts dist/index.d.ts",
     "preview": "vite preview",
-    "publish": "npm publish"
+    "release": "npm run build && npm publish"
   },
   "peerDependencies": {
     "react": "^18.3.1",
