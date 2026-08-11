@@ -13,6 +13,7 @@ function App() {
       <p>点击悬浮球：刷新页面</p>
       <p>双击悬浮球：打开菜单</p>
       <p>拖拽悬浮球：移动位置</p>
+      <p>点击球右侧展开图标：展开/收起更多信息</p>
 
       <div style={{ marginTop: '100px' }}>
         <h2>页面内容</h2>
@@ -22,7 +23,7 @@ function App() {
       <FloatingBall
         storageKey="floating-ball-position"
         defaultPosition={{ x: 16, y: 16 }}
-        width={80}
+        width={96}
         height={32}
         borderRadius={12}
         bgColor="rgb(34, 139, 34)"
@@ -30,6 +31,12 @@ function App() {
           version: VERSION,
           buildTime: BUILD_TIME,
         }}
+        extraInfo={[
+          { label: 'Git 分支', value: 'main' },
+          { label: 'Commit', value: '7d35263' },
+          { label: '环境', value: 'staging' },
+          { label: '构建时长', value: '42s' },
+        ]}
       />
     </div>
   );

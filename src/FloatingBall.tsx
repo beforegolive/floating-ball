@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import dayjs from "dayjs";
 import { css, setup } from "goober";
-import type { FloatingBallProps, MenuItem, Position, VersionInfo } from "../types";
+import type { FloatingBallProps, InfoItem, MenuItem, Position, VersionInfo } from "../types";
 
 // 初始化 goober
 setup(css);
@@ -60,9 +60,65 @@ const menuItemStyle = css`
   }
 `;
 
+const expanderStyle = css`
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-left: 1px solid rgba(255, 255, 255, 0.35);
+  background-color: rgba(255, 255, 255, 0.2);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.95);
+  user-select: none;
+`;
+
+const infoPanelStyle = css`
+  position: fixed;
+  z-index: 50;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 8px 10px;
+  min-width: 128px;
+`;
+
+const infoRowStyle = css`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 4px 0;
+  font-size: 12px;
+  color: #333;
+  &:not(:last-child) {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  }
+`;
+
+const infoLabelStyle = css`
+  color: #999;
+  flex-shrink: 0;
+`;
+
+const infoValueStyle = css`
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+`;
+
 const DEFAULT_WIDTH = 80;
 const DEFAULT_HEIGHT = 32;
 const DEFAULT_BORDER_RADIUS = 12;
+const INFO_PANEL_WIDTH = 150;
+const EXPANDER_WIDTH = 20;
 
 const FloatingBall = ({
   extraMenuItems,
@@ -76,6 +132,7 @@ const FloatingBall = ({
   className = "",
   zIndex = 2999,
   versionInfo,
+  extraInfo,
 }: FloatingBallProps) => {
   // 检测 versionInfo 是否完整（必填）
   useEffect(() => {
@@ -99,6 +156,7 @@ const FloatingBall = ({
   });
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const isDraggingRef = useRef(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
   const positionRef = useRef(position);
@@ -107,15 +165,26 @@ const FloatingBall = ({
   const doubleClickFiredRef = useRef(false);
   const wasJustDraggedRef = useRef(false);
   const ballRef = useRef<HTMLDivElement>(null);
+  const expanderRef = useRef<HTMLDivElement>(null);
   const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
 
   useEffect(() => {
     positionRef.current = position;
   }, [position]);
 
+  // 展开面板与菜单互斥，避免两个下拉同时出现
+  useEffect(() => {
+    if (isExpanded) setIsMenuOpen(false);
+  }, [isExpanded]);
+  useEffect(() => {
+    if (isMenuOpen) setIsExpanded(false);
+  }, [isMenuOpen]);
+
   const handleDragStart = useCallback((clientX: number, clientY: number) => {
     isDraggingRef.current = false;
     dragStartRef.current = { x: clientX, y: clientY };
+    setIsMenuOpen(false);
+    setIsExpanded(false);
   }, []);
 
   const handleDragMove = useCallback(
@@ -173,8 +242,12 @@ const FloatingBall = ({
     [handleDragStart, handleDragMove, handleDragEnd]
   );
 
-  const handleClick = useCallback(() => {
+  const handleClick = useCallback((e: React.MouseEvent) => {
     if (touchHandledRef.current) {
+      return;
+    }
+
+    if (expanderRef.current?.contains(e.target as Node)) {
       return;
     }
 
@@ -204,6 +277,7 @@ const FloatingBall = ({
       clickTimerRef.current = null;
     }
     if (!isDraggingRef.current && menuItems.length > 0) {
+      setIsExpanded(false);
       setIsMenuOpen(true);
     }
     doubleClickFiredRef.current = true;
@@ -215,6 +289,9 @@ const FloatingBall = ({
   const handleMouseDownBall = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
+      if (expanderRef.current?.contains(e.target as Node)) {
+        return;
+      }
       handleMouseDown(e);
     },
     [handleMouseDown]
@@ -226,6 +303,7 @@ const FloatingBall = ({
 
     const onTouchStart = (e: TouchEvent) => {
       if (e.touches.length !== 1) return;
+      if (expanderRef.current?.contains(e.target as Node)) return;
       handleDragStart(e.touches[0].clientX, e.touches[0].clientY);
     };
     const onTouchMove = (e: TouchEvent) => {
@@ -235,7 +313,8 @@ const FloatingBall = ({
         e.preventDefault();
       }
     };
-    const onTouchEnd = (_e: TouchEvent) => {
+    const onTouchEnd = (e: TouchEvent) => {
+      if (expanderRef.current?.contains(e.target as Node)) return;
       handleDragEnd();
       if (!isDraggingRef.current) {
         const now = Date.now();
@@ -253,6 +332,7 @@ const FloatingBall = ({
             clickTimerRef.current = null;
           }
           if (menuItems.length > 0) {
+            setIsExpanded(false);
             setIsMenuOpen(true);
           }
           doubleClickFiredRef.current = true;
@@ -284,7 +364,8 @@ const FloatingBall = ({
         touchHandledRef.current = true;
       }
     };
-    const onDblClick = () => {
+    const onDblClick = (e: MouseEvent) => {
+      if (expanderRef.current?.contains(e.target as Node)) return;
       handleDoubleClick();
     };
 
@@ -310,6 +391,10 @@ const FloatingBall = ({
     setIsMenuOpen(false);
   }, []);
 
+  const toggleExpand = useCallback(() => {
+    setIsExpanded((prev) => !prev);
+  }, []);
+
   return (
     <>
       <div
@@ -319,10 +404,12 @@ const FloatingBall = ({
           left: position.x,
           top: position.y,
           width,
-          height,
+          minHeight: height,
           borderRadius,
           zIndex,
           backgroundColor: bgColor,
+          boxSizing: extraInfo && extraInfo.length > 0 ? "border-box" : undefined,
+          paddingRight: extraInfo && extraInfo.length > 0 ? EXPANDER_WIDTH : undefined,
         }}
         onMouseDown={handleMouseDownBall}
         onClick={handleClick}
@@ -336,6 +423,19 @@ const FloatingBall = ({
           <span style={{ opacity: 0.8, lineHeight: 1.1, textAlign: "center", margin: 0, fontWeight: "bold" }}>
             v{versionInfo.version}
           </span>
+        )}
+        {extraInfo && extraInfo.length > 0 && (
+          <div
+            ref={expanderRef}
+            className={expanderStyle}
+            style={{ borderRadius: `0 ${Math.max(0, borderRadius - 2)}px ${Math.max(0, borderRadius - 2)}px 0` }}
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleExpand();
+            }}
+          >
+            {isExpanded ? "▴" : "▾"}
+          </div>
         )}
       </div>
 
@@ -365,9 +465,32 @@ const FloatingBall = ({
           </div>
         </>
       )}
+
+      {isExpanded && extraInfo && extraInfo.length > 0 && (
+        <>
+          <div className={menuOverlayStyle} onClick={() => setIsExpanded(false)} />
+          <div
+            className={infoPanelStyle}
+            style={{
+              left: Math.max(16, Math.min(position.x + width - INFO_PANEL_WIDTH, window.innerWidth - INFO_PANEL_WIDTH - 16)),
+              top:
+                position.y + height + 8 + extraInfo.length * 22 + 16 > window.innerHeight
+                  ? Math.max(16, position.y - extraInfo.length * 22 - 16 - 8)
+                  : position.y + height + 8,
+            }}
+          >
+            {extraInfo.map((item, index) => (
+              <div key={`${item.label}-${index}`} className={infoRowStyle}>
+                <span className={infoLabelStyle}>{item.label}</span>
+                <span className={infoValueStyle}>{item.value}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </>
   );
 };
 
 export default FloatingBall;
-export type { FloatingBallProps, MenuItem, Position, VersionInfo };
+export type { FloatingBallProps, MenuItem, InfoItem, Position, VersionInfo };

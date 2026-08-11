@@ -9,6 +9,13 @@ export interface MenuItem {
   action: () => void;
 }
 
+export interface InfoItem {
+  /** 信息项的标签 */
+  label: string;
+  /** 信息项的值 */
+  value: string;
+}
+
 export interface FloatingBallProps {
   /** 附加菜单项（常驻项：刷新、回到首页） */
   extraMenuItems?: MenuItem[];
@@ -23,12 +30,14 @@ export interface FloatingBallProps {
   height?: number;
   /** 圆角 */
   borderRadius?: number;
-  /** 背景色，默认蓝色 */
+  /** 背景色，默认绿色 */
   bgColor?: string;
   /** 样式类名 */
   className?: string;
   /** 层级 */
   zIndex?: number;
+  /** 底部扩展行显示的信息项；提供后悬浮球右侧出现可点击的展开图标，点击展开键值对下拉面板 */
+  extraInfo?: InfoItem[];
   /**
    * 版本信息，用于显示在悬浮球上（必填）
    * - version: 从引用方项目的 package.json 读取
