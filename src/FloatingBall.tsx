@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import dayjs from "dayjs";
 import { css, setup } from "goober";
-import type { FloatingBallProps, InfoItem, MenuItem, Position, VersionInfo } from "../types";
+import type { FloatingBallData, FloatingBallProps, InfoItem, Position, VersionInfo } from "../types";
 
 // 初始化 goober
 setup(css);
@@ -30,34 +30,6 @@ const menuOverlayStyle = css`
   position: fixed;
   inset: 0;
   z-index: 40;
-`;
-
-const menuStyle = css`
-  position: fixed;
-  z-index: 50;
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  padding: 8px 0;
-  min-width: 144px;
-`;
-
-const menuItemStyle = css`
-  width: 100%;
-  padding: 8px 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 14px;
-  color: #333;
-  cursor: pointer;
-  background: none;
-  border: none;
-  text-align: left;
-  &:hover {
-    background-color: rgba(0, 0, 0, 0.05);
-  }
 `;
 
 const expanderStyle = css`
@@ -121,7 +93,6 @@ const INFO_PANEL_WIDTH = 150;
 const EXPANDER_WIDTH = 20;
 
 const FloatingBall = ({
-  extraMenuItems,
   onClick,
   storageKey = "floating-ball-position",
   defaultPosition = { x: 16, y: 16 },
@@ -131,17 +102,8 @@ const FloatingBall = ({
   bgColor = "rgb(34, 139, 34)",
   className = "",
   zIndex = 2999,
-  versionInfo,
-  extraInfo,
+  data = {},
 }: FloatingBallProps) => {
-  // 检测 versionInfo 是否完整（必填）
-  useEffect(() => {
-    if (!versionInfo) {
-      console.error('[FloatingBall] versionInfo is required. Please provide { version, buildTime } to display version info.');
-    } else if (!versionInfo.version || !versionInfo.buildTime) {
-      console.error('[FloatingBall] versionInfo is incomplete. Both version and buildTime are required.');
-    }
-  }, [versionInfo]);
 
   const [position, setPosition] = useState<Position>(() => {
     const saved = localStorage.getItem(storageKey);
@@ -155,35 +117,22 @@ const FloatingBall = ({
     return defaultPosition;
   });
 
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const isDraggingRef = useRef(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
   const positionRef = useRef(position);
-  const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchHandledRef = useRef(false);
-  const doubleClickFiredRef = useRef(false);
   const wasJustDraggedRef = useRef(false);
   const ballRef = useRef<HTMLDivElement>(null);
   const expanderRef = useRef<HTMLDivElement>(null);
-  const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
 
   useEffect(() => {
     positionRef.current = position;
   }, [position]);
 
-  // 展开面板与菜单互斥，避免两个下拉同时出现
-  useEffect(() => {
-    if (isExpanded) setIsMenuOpen(false);
-  }, [isExpanded]);
-  useEffect(() => {
-    if (isMenuOpen) setIsExpanded(false);
-  }, [isMenuOpen]);
-
   const handleDragStart = useCallback((clientX: number, clientY: number) => {
     isDraggingRef.current = false;
     dragStartRef.current = { x: clientX, y: clientY };
-    setIsMenuOpen(false);
     setIsExpanded(false);
   }, []);
 
@@ -253,38 +202,10 @@ const FloatingBall = ({
 
     if (onClick === false) return;
 
-    if (menuItems.length > 0) {
-      if (clickTimerRef.current) {
-        clearTimeout(clickTimerRef.current);
-      }
-
-      clickTimerRef.current = setTimeout(() => {
-        clickTimerRef.current = null;
-        if (!isDraggingRef.current && !doubleClickFiredRef.current && !wasJustDraggedRef.current) {
-          onClick ? onClick() : window.location.reload();
-        }
-      }, 300);
-    } else {
-      if (!isDraggingRef.current && !wasJustDraggedRef.current) {
-        onClick ? onClick() : window.location.reload();
-      }
+    if (!isDraggingRef.current && !wasJustDraggedRef.current) {
+      onClick ? onClick() : window.location.reload();
     }
-  }, [onClick, extraMenuItems]);
-
-  const handleDoubleClick = useCallback(() => {
-    if (clickTimerRef.current) {
-      clearTimeout(clickTimerRef.current);
-      clickTimerRef.current = null;
-    }
-    if (!isDraggingRef.current && menuItems.length > 0) {
-      setIsExpanded(false);
-      setIsMenuOpen(true);
-    }
-    doubleClickFiredRef.current = true;
-    setTimeout(() => {
-      doubleClickFiredRef.current = false;
-    }, 400);
-  }, [extraMenuItems]);
+  }, [onClick]);
 
   const handleMouseDownBall = useCallback(
     (e: React.MouseEvent) => {
@@ -317,79 +238,22 @@ const FloatingBall = ({
       if (expanderRef.current?.contains(e.target as Node)) return;
       handleDragEnd();
       if (!isDraggingRef.current) {
-        const now = Date.now();
-        const lastTap = lastTapRef.current;
-        const isMobileDoubleTap =
-          lastTap &&
-          now - lastTap.time < 300 &&
-          Math.abs(position.x - lastTap.x) < 10 &&
-          Math.abs(position.y - lastTap.y) < 10;
-
-        if (isMobileDoubleTap) {
-          lastTapRef.current = null;
-          if (clickTimerRef.current) {
-            clearTimeout(clickTimerRef.current);
-            clickTimerRef.current = null;
-          }
-          if (menuItems.length > 0) {
-            setIsExpanded(false);
-            setIsMenuOpen(true);
-          }
-          doubleClickFiredRef.current = true;
-          setTimeout(() => {
-            doubleClickFiredRef.current = false;
-          }, 400);
-          touchHandledRef.current = true;
-          return;
-        }
-
-        lastTapRef.current = { time: now, x: position.x, y: position.y };
-
-        if (clickTimerRef.current) {
-          clearTimeout(clickTimerRef.current);
-        }
-
-        if (menuItems.length > 0) {
-          clickTimerRef.current = setTimeout(() => {
-            clickTimerRef.current = null;
-            lastTapRef.current = null;
-            if (!doubleClickFiredRef.current) {
-              onClick ? onClick() : window.location.reload();
-            }
-          }, 300);
-        } else {
-          onClick ? onClick() : window.location.reload();
-        }
-
+        if (onClick === false) return;
+        onClick ? onClick() : window.location.reload();
         touchHandledRef.current = true;
       }
-    };
-    const onDblClick = (e: MouseEvent) => {
-      if (expanderRef.current?.contains(e.target as Node)) return;
-      handleDoubleClick();
     };
 
     ball.addEventListener("touchstart", onTouchStart, { passive: false });
     ball.addEventListener("touchmove", onTouchMove, { passive: false });
     ball.addEventListener("touchend", onTouchEnd);
-    ball.addEventListener("dblclick", onDblClick);
 
     return () => {
       ball.removeEventListener("touchstart", onTouchStart);
       ball.removeEventListener("touchmove", onTouchMove);
       ball.removeEventListener("touchend", onTouchEnd);
-      ball.removeEventListener("dblclick", onDblClick);
     };
-  }, [handleDragStart, handleDragMove, handleDragEnd, handleDoubleClick]);
-
-  const defaultMenuItems: MenuItem[] = [
-    { label: "刷新", icon: "🔄", action: () => window.location.reload() },
-  ];
-  const menuItems: MenuItem[] = [...defaultMenuItems, ...(extraMenuItems || [])];
-
-  const closeMenu = useCallback(() => {
-    setIsMenuOpen(false);
-  }, []);
+  }, [handleDragStart, handleDragMove, handleDragEnd]);
 
   const toggleExpand = useCallback(() => {
     setIsExpanded((prev) => !prev);
@@ -408,23 +272,23 @@ const FloatingBall = ({
           borderRadius,
           zIndex,
           backgroundColor: bgColor,
-          boxSizing: extraInfo && extraInfo.length > 0 ? "border-box" : undefined,
-          paddingRight: extraInfo && extraInfo.length > 0 ? EXPANDER_WIDTH : undefined,
+          boxSizing: data.info && data.info.length > 0 ? "border-box" : undefined,
+          paddingRight: data.info && data.info.length > 0 ? EXPANDER_WIDTH : undefined,
         }}
         onMouseDown={handleMouseDownBall}
         onClick={handleClick}
       >
-        {versionInfo?.buildTime && (
+        {data.buildTime && (
           <span style={{ opacity: 0.8, lineHeight: 1.1, textAlign: "center", margin: 0 }}>
-            {dayjs(versionInfo.buildTime).format("MM-DD(HH:mm)")}
+            {dayjs(data.buildTime).format("MM-DD(HH:mm)")}
           </span>
         )}
-        {versionInfo?.version && (
+        {data.version && (
           <span style={{ opacity: 0.8, lineHeight: 1.1, textAlign: "center", margin: 0, fontWeight: "bold" }}>
-            v{versionInfo.version}
+            v{data.version}
           </span>
         )}
-        {extraInfo && extraInfo.length > 0 && (
+        {data.info && data.info.length > 0 && (
           <div
             ref={expanderRef}
             className={expanderStyle}
@@ -439,34 +303,7 @@ const FloatingBall = ({
         )}
       </div>
 
-      {isMenuOpen && menuItems.length > 0 && (
-        <>
-          <div className={menuOverlayStyle} onClick={closeMenu} />
-          <div
-            className={menuStyle}
-            style={{
-              left: Math.max(16, Math.min(position.x, window.innerWidth - 160)),
-              top: position.y + height + 8,
-            }}
-          >
-            {menuItems.map((item, index) => (
-              <button
-                key={`${item.label}-${index}`}
-                className={menuItemStyle}
-                onClick={() => {
-                  setIsMenuOpen(false);
-                  item.action();
-                }}
-              >
-                {item.icon && <span>{item.icon}</span>}
-                <span>{item.label}</span>
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-
-      {isExpanded && extraInfo && extraInfo.length > 0 && (
+      {isExpanded && data.info && data.info.length > 0 && (
         <>
           <div className={menuOverlayStyle} onClick={() => setIsExpanded(false)} />
           <div
@@ -474,12 +311,12 @@ const FloatingBall = ({
             style={{
               left: Math.max(16, Math.min(position.x + width - INFO_PANEL_WIDTH, window.innerWidth - INFO_PANEL_WIDTH - 16)),
               top:
-                position.y + height + 8 + extraInfo.length * 22 + 16 > window.innerHeight
-                  ? Math.max(16, position.y - extraInfo.length * 22 - 16 - 8)
+                position.y + height + 8 + data.info.length * 22 + 16 > window.innerHeight
+                  ? Math.max(16, position.y - data.info.length * 22 - 16 - 8)
                   : position.y + height + 8,
             }}
           >
-            {extraInfo.map((item, index) => (
+            {data.info.map((item, index) => (
               <div key={`${item.label}-${index}`} className={infoRowStyle}>
                 <span className={infoLabelStyle}>{item.label}</span>
                 <span className={infoValueStyle}>{item.value}</span>
@@ -493,4 +330,4 @@ const FloatingBall = ({
 };
 
 export default FloatingBall;
-export type { FloatingBallProps, MenuItem, InfoItem, Position, VersionInfo };
+export type { FloatingBallData, FloatingBallProps, InfoItem, Position, VersionInfo };

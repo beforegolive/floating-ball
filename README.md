@@ -17,19 +17,16 @@ import dayjs from 'dayjs';
 function App() {
   return (
     <FloatingBall
-      versionInfo={{
+      data={{
         version: '1.0.0',
         buildTime: dayjs(),
+        info: [
+          { label: 'Git 分支', value: 'main' },
+          { label: 'Commit', value: '7d35263' },
+          { label: '环境', value: 'staging' },
+        ],
       }}
       storageKey="my-ball-position"
-      extraMenuItems={[
-        { label: '游戏首页', icon: '🎮', action: () => { window.location.href = '/'; } },
-      ]}
-      extraInfo={[
-        { label: 'Git 分支', value: 'main' },
-        { label: 'Commit', value: '7d35263' },
-        { label: '环境', value: 'staging' },
-      ]}
     />
   );
 }
@@ -37,9 +34,15 @@ function App() {
 
 ## 属性
 
-| 属性 | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `extraInfo` | `InfoItem[]` | — | 底部扩展行展示的键值对信息；提供后在悬浮球右侧显示可点击的展开图标，点击展开下拉面板 |
+`FloatingBallData` 集中了悬浮球呈现所需的所有数据：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `version` | `string` | 版本号，显示在悬浮球上 |
+| `buildTime` | `Dayjs \| Date` | 构建时间，显示在悬浮球上（格式化为 `MM-DD(HH:mm)`） |
+| `info` | `InfoItem[]` | 底部扩展下拉面板展示的键值对信息；提供后悬浮球右侧显示可点击的展开图标 |
+
+通过 `data` 属性传入：`<FloatingBall data={{ version, buildTime, info }} />`
 
 ## peerDependencies
 
